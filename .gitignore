@@ -1,0 +1,41 @@
+# Ignore Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore virtual environments
+venv/
+env/
+*.venv
+
+# Ignore environment variables and secrets
+.env
+*.env
+
+# Ignore Django migrations compiled files
+**/migrations/*.pyc
+**/migrations/*.pyo
+**/migrations/__pycache__/
+
+# Ignore static and media files (if using collectstatic)
+staticfiles/
+media/
+
+# Ignore database and cache files
+*.sqlite3
+db.sqlite3
+*.db
+*.log
+*.pot
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# Ignore node modules (if using React, Vue, or frontend with Django)
+node_modules/
+npm-debug.log
+yarn-error.log

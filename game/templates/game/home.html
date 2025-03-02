@@ -1,0 +1,168 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Games</title>
+    <link rel="icon" type="image/x-icon" href="static/tri_fevicon-removebg-preview.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body { background-color: #f8f9fa; text-align: center; padding: 20px; }
+        .game-container { max-width: 600px; margin: auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .btn-option {     width: 30%;
+    margin-top: 10px;
+    margin-left: 10px; }
+        .feedback { font-size: 1.2rem; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h2>🎯 Guess the Destination!</h2>
+
+        <!-- Username Registration -->
+        <div id="username-container">
+            <input type="text" id="username" class="form-control mb-2" placeholder="Enter your username" />
+            <button id="register-btn" class="btn btn-success" style="
+            margin-top: 8px;
+        ">Register & Play</button>
+        </div>
+
+        <p id="loading" class="text-muted d-none">Loading...</p>
+        <div id="error" class="alert alert-danger d-none"></div>
+
+        <!-- Show inviter details if accessed via an invite link -->
+        <div id="inviter-info" class="alert alert-info d-none" style="
+        margin-bottom: 16px;
+        border-top-width: 0.8;
+        margin-top: 16px;
+    "></div>
+
+        <div id="clues-container" class="mt-3 d-none">
+            <p><strong>📝 Clues</strong></p>
+            <ul id="clues-list" class="list-group"></ul>
+        </div>
+
+        <div id="options-container" class="mt-3 d-none"></div>
+        <div id="feedback" class="feedback"></div>
+        <p id="fun-fact" class="text-muted"></p>
+
+        <p class="mt-3">🏆 Score: ✅ <span id="correct-score">0</span> | ❌ <span id="incorrect-score">0</span></p>
+        <button id="next-btn" class="btn btn-primary mt-3 d-none">🔄 Next</button>
+
+        <!-- Challenge a Friend -->
+        <button id="challenge-btn" class="btn btn-warning mt-3 d-none">🔥 Challenge a Friend</button>
+    </div>
+
+    <script>
+        let correctScore = 0;
+        let incorrectScore = 0;
+        let csrfToken = "";
+        let username = "";
+
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchCsrfToken();
+            checkInvite();
+            document.getElementById("register-btn").addEventListener("click", registerUser);
+            document.getElementById("next-btn").addEventListener("click", fetchRandomClues);
+            document.getElementById("challenge-btn").addEventListener("click", challengeFriend);
+        });
+
+        function fetchCsrfToken() {
+            fetch("{% url 'get_csrf_token' %}")
+                .then(response => response.json())
+                .then(data => { csrfToken = data.csrfToken; });
+        }
+
+        function registerUser() {
+            username = document.getElementById("username").value.trim();
+            if (!username) {
+                alert("Please enter a username!");
+                return;
+            }
+            document.getElementById("username-container").classList.add("d-none");
+            document.getElementById("challenge-btn").classList.remove("d-none");
+            fetchRandomClues();
+        }
+
+        function fetchRandomClues() {
+            document.getElementById("loading").classList.remove("d-none");
+            document.getElementById("next-btn").classList.add("d-none");
+            document.getElementById("feedback").innerHTML = "";
+            document.getElementById("fun-fact").innerHTML = "";
+
+            fetch("{% url 'get_random_clues' %}")
+                .then(response => response.json())
+                .then(data => {
+                    displayClues(data.clues);
+                    displayOptions(data.options, data.correct_answer, data.fun_fact);
+                    document.getElementById("loading").classList.add("d-none");
+                });
+        }
+
+        function displayClues(clues) {
+            const cluesList = document.getElementById("clues-list");
+            cluesList.innerHTML = "";
+            clues.forEach(clue => {
+                let li = document.createElement("li");
+                li.className = "list-group-item";
+                li.innerText = clue;
+                cluesList.appendChild(li);
+            });
+            document.getElementById("clues-container").classList.remove("d-none");
+        }
+
+        function displayOptions(options, correctAnswer, funFact) {
+            const optionsContainer = document.getElementById("options-container");
+            optionsContainer.innerHTML = "";
+            options.forEach(option => {
+                let button = document.createElement("button");
+                button.className = "btn btn-outline-primary btn-option";
+                button.innerText = option;
+                button.onclick = () => checkAnswer(option, correctAnswer, funFact);
+                optionsContainer.appendChild(button);
+            });
+            optionsContainer.classList.remove("d-none");
+        }
+
+        function checkAnswer(answer, correctAnswer, funFact) {
+            fetch("{% url 'check_answer' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                body: JSON.stringify({ user_answer: answer, correct_answer: correctAnswer })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("feedback").innerHTML = data.message;
+                document.getElementById("fun-fact").innerHTML = data.result === "correct" ? "💡 " + funFact : "";
+
+                if (data.result === "correct") {
+                    correctScore++;
+                    document.getElementById("correct-score").innerText = correctScore;
+                } else {
+                    incorrectScore++;
+                    document.getElementById("incorrect-score").innerText = incorrectScore;
+                }
+
+                document.getElementById("next-btn").classList.remove("d-none");
+            });
+        }
+
+        function challengeFriend() {
+            let inviteLink = `{{ request.build_absolute_uri }}?inviter=${username}&score=${correctScore}`;
+            let whatsappLink = `https://api.whatsapp.com/send?text=🔥 I challenge you to beat my score in this trivia game! Play here: ${encodeURIComponent(inviteLink)}`;
+
+            window.open(whatsappLink, "_blank");
+        }
+
+        function checkInvite() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has("inviter") && params.has("score")) {
+                document.getElementById("inviter-info").innerText = `🏆 ${params.get("inviter")} scored ${params.get("score")} points! Can you beat them?`;
+                document.getElementById("inviter-info").classList.remove("d-none");
+            }
+        }
+    </script>
+</body>
+</html>
