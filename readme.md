@@ -131,7 +131,12 @@ trivia-game/
 │-- README.md
 │-- requirements.txt
 ```
-
+## 📌 Technologies Used
+- Django (Backend)
+- SQLite/PostgreSQL (Database)
+- Bootstrap 5 (Styling)
+- JavaScript (ES6) (Frontend logic)
+- CSRF Protection (Security)
 ---
 
 ## 📜 License
