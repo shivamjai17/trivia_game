@@ -22,7 +22,7 @@ This is a fun and interactive **Django-powered Trivia Game** where users guess t
 ### 1️⃣ Clone the Repository
 ```bash
 git clone https://github.com/shivamjai17/trivia_game.git
-cd trivia-game
+cd trivia_game
 ```
 
 ### 2️⃣ Create a Virtual Environment
