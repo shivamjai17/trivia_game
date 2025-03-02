@@ -21,7 +21,7 @@ This is a fun and interactive **Django-powered Trivia Game** where users guess t
 
 ### 1️⃣ Clone the Repository
 ```bash
-git clone https://github.com/yourusername/trivia-game.git
+git clone https://github.com/shivamjai17/trivia_game.git
 cd trivia-game
 ```
 
@@ -81,7 +81,7 @@ Access the game at: **http://127.0.0.1:8000/**
 - **Request Body**:
   ```json
   {
-      "user_answer": "Rio de Janeiro",
+      "user_answer": "Sam",
       "correct_answer": "Rio de Janeiro"
   }
   ```
@@ -108,8 +108,7 @@ Access the game at: **http://127.0.0.1:8000/**
 - **Response**:
   ```json
   {
-      "invite_link": "http://127.0.0.1:8000/play?invite=player1",
-      "image_url": "http://127.0.0.1:8000/static/invite_images/player1.png"
+      "invite_link": "http://127.0.0.1:8000/play?invite=player1"
   }
   ```
 
